@@ -1,8 +1,51 @@
 # AI RAG Assistant
 
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.12-blue?logo=python" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Next.js-14-black?logo=next.js" alt="Next.js">
+  <img src="https://img.shields.io/badge/LangChain-0.3-1C3C3C?logo=langchain" alt="LangChain">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <br>
+  <a href="#deployment"><img src="https://img.shields.io/badge/Deploy_on-Railway-0B0D0E?logo=railway" alt="Deploy on Railway"></a>
+  <a href="https://github.com/anoliz13/ai-rag-assistant/actions"><img src="https://github.com/anoliz13/ai-rag-assistant/actions/workflows/ci.yml/badge.svg" alt="CI/CD"></a>
+</p>
+
 Production-grade **Retrieval-Augmented Generation** assistant built with **FastAPI**, **LangChain**, **Next.js 14**, and **Claude/OpenAI APIs**.
 
 > Upload documents (PDF, DOCX, TXT, CSV, Markdown), ask questions in natural language, and get AI-powered answers with source citations.
+
+---
+
+## Demo
+
+> **Live Demo:** [Coming soon — deploy to Railway to get your URL]
+
+<!--
+TODO: Replace the placeholder below with your actual demo screenshot/GIF
+      Example:
+        <img src="screenshots/demo.gif" alt="Demo GIF" width="800">
+      Capture using: https://www.screentogif.com/ or similar tool
+-->
+
+<p align="center">
+  <img src="screenshots/demo-placeholder.png" alt="Demo Screenshot (Add yours!)" width="700">
+  <br>
+  <em>Demo screenshot — replace with your own recording.</em>
+</p>
+
+### Features Overview
+
+| Feature | Description |
+|---------|-------------|
+| 📄 Upload | PDF, DOCX, TXT, CSV, Markdown |
+| 🔍 RAG Chat | Q&A with source citations |
+| ⚡ Streaming | Real-time SSE responses |
+| 🗃️ Document Manager | List, search, preview, delete |
+| 💬 Chat History | Sessions, rename, export |
+| ⚙️ Admin | API keys, chunk config |
+
+---
 
 ## Architecture
 
@@ -99,6 +142,65 @@ docker compose up -d
 ```
 
 Scale workers: `docker compose up -d --scale worker=3`
+
+## Deployment (Railway)
+
+This project is configured for easy deployment on [Railway](https://railway.app).
+
+### One-click Deploy
+
+[![Deploy on Railway](https://img.shields.io/badge/Deploy_on-Railway-0B0D0E?logo=railway)](https://railway.app/template/ai-rag-assistant)
+
+### Manual Setup
+
+1. **Fork this repo** to your GitHub account.
+2. **Create a Railway project** and add these services:
+
+| Service | Root Directory | Type | Notes |
+|---------|---------------|------|-------|
+| Backend | `backend` | Web service | FastAPI + Celery |
+| Frontend | `frontend` | Web service | Next.js |
+| PostgreSQL | — | Plugin | Railway managed |
+| Redis | — | Plugin | Railway managed |
+| MinIO | — | Plugin or external S3 | For file storage |
+
+3. **Set environment variables** in each service:
+
+#### Backend Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ANTHROPIC_API_KEY` | Yes | Claude API key |
+| `OPENAI_API_KEY` | No | OpenAI fallback |
+| `DATABASE_URL` | Auto | Set by Railway PostgreSQL plugin |
+| `DATABASE_URL_SYNC` | Auto | Set by Railway PostgreSQL plugin |
+| `REDIS_URL` | Auto | Set by Railway Redis plugin |
+| `SECRET_KEY` | Yes | Change for production |
+| `MINIO_ENDPOINT` | Yes | MinIO server endpoint |
+| `MINIO_ACCESS_KEY` | Yes | MinIO access key |
+| `MINIO_SECRET_KEY` | Yes | MinIO secret key |
+| `MINIO_BUCKET` | Yes | MinIO bucket name |
+| `ENVIRONMENT` | No | `production` |
+| `LLM_PROVIDER` | No | `claude` (default) |
+| `LLM_MODEL` | No | `claude-sonnet-4-20250514` |
+
+#### Frontend Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_API_URL` | Yes | Backend URL (e.g. `https://backend-xxx.up.railway.app`) |
+| `NEXT_PUBLIC_WS_URL` | Yes | WebSocket URL (e.g. `wss://backend-xxx.up.railway.app`) |
+
+4. **Railway will auto-deploy** on every push to `main`.
+
+### Health Check
+
+Backend exposes a health endpoint at `/health`:
+```json
+{"status": "ok", "service": "ai-rag-assistant", "version": "1.0.0"}
+```
+
+---
 
 ## License
 

@@ -1,0 +1,10 @@
+# AI RAG Assistant - Railway Configuration
+# This is a multi-service project.
+# Deploy services individually via Railway dashboard:
+#   1. Backend  -> set root directory = "backend"
+#   2. Frontend -> set root directory = "frontend"
+#   3. PostgreSQL -> add via Railway plugin
+#   4. Redis      -> add via Railway plugin
+#   5. MinIO      -> add via Railway plugin (or use existing S3)
+#
+# See backend/railway.toml and frontend/railway.toml for per-service config.
