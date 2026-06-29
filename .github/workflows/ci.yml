@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI
 
 on:
   push:
@@ -6,12 +6,8 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
-  lint-backend:
+  lint:
     name: Lint Backend
     runs-on: ubuntu-latest
     defaults:
@@ -24,11 +20,10 @@ jobs:
           python-version: "3.12"
           cache: "pip"
       - run: pip install -r requirements.txt
-      - run: pip install ruff mypy types-PyYAML
+      - run: pip install ruff
       - run: ruff check .
-      - run: mypy app --ignore-missing-imports || true
 
-  test-backend:
+  test:
     name: Test Backend
     runs-on: ubuntu-latest
     defaults:
@@ -75,52 +70,9 @@ jobs:
           EOF
       - run: pytest -v --timeout=30 || true
 
-  lint-frontend:
-    name: Lint Frontend
+  build:
+    name: Docker Compose Build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: ./frontend/package-lock.json
-      - run: npm ci || npm install
-      - run: npx next lint --no-cache || true
-      - run: npx tsc --noEmit || true
-
-  docker-build:
-    name: Docker Build
-    runs-on: ubuntu-latest
-    needs: [lint-backend, lint-frontend]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push backend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - name: Build and push frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - run: docker compose build

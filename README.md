@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
   <br>
   <a href="#deployment"><img src="https://img.shields.io/badge/Deploy_on-Railway-0B0D0E?logo=railway" alt="Deploy on Railway"></a>
-  <a href="https://github.com/anoliz13/ai-rag-assistant/actions"><img src="https://github.com/anoliz13/ai-rag-assistant/actions/workflows/ci.yml/badge.svg" alt="CI/CD"></a>
+  <a href="https://github.com/anoliz13/ai-rag-assistant/actions"><img src="https://github.com/anoliz13/ai-rag-assistant/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
 Production-grade **Retrieval-Augmented Generation** assistant built with **FastAPI**, **LangChain**, **Next.js 14**, and **Claude/OpenAI APIs**.
@@ -22,16 +22,15 @@ Production-grade **Retrieval-Augmented Generation** assistant built with **FastA
 > **Live Demo:** [Coming soon — deploy to Railway to get your URL]
 
 <!--
-TODO: Replace the placeholder below with your actual demo screenshot/GIF
-      Example:
-        <img src="screenshots/demo.gif" alt="Demo GIF" width="800">
+TODO: Replace the placeholders below with actual screenshots/GIFs
+      See `docs/screenshots/README.md` for details.
       Capture using: https://www.screentogif.com/ or similar tool
 -->
 
 <p align="center">
-  <img src="screenshots/demo-placeholder.png" alt="Demo Screenshot (Add yours!)" width="700">
+  <img src="docs/screenshots/chat.png" alt="RAG Chat" width="700">
   <br>
-  <em>Demo screenshot — replace with your own recording.</em>
+  <em>RAG chat with source citations — replace with your own screenshot.</em>
 </p>
 
 ### Features Overview
@@ -134,16 +133,36 @@ Upload "Financial Report 2025.pdf" and ask:
 | `CHUNK_SIZE` | Text chunk size | `1000` |
 | `CHUNK_OVERLAP` | Chunk overlap | `200` |
 
-## Deployment
+## Local Development
 
 ```bash
-docker compose build
-docker compose up -d
+docker compose up -d        # Start all services
+make migrate                # Run database migrations
+make seed                   # Upload sample documents
 ```
 
-Scale workers: `docker compose up -d --scale worker=3`
+Open http://localhost:3000 for the UI, http://localhost:8000/docs for API docs.
 
-## Deployment (Railway)
+Scale workers locally: `docker compose up -d --scale worker=3`
+
+## Production
+
+```bash
+cp .env.railway .env.production
+# Edit .env.production with real secrets
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Differs from local dev:
+| Aspect | Local (`docker-compose.yml`) | Production (`docker-compose.prod.yml`) |
+|--------|------------------------------|----------------------------------------|
+| Hot reload | Yes | No |
+| Volume mounts | Source code mounted | Named volumes only |
+| `restart` | No | `always` |
+| Resource limits | None | CPU/memory limits |
+| Env file | `.env` | `.env.production` |
+
+## Deploy to Railway
 
 This project is configured for easy deployment on [Railway](https://railway.app).
 
@@ -151,7 +170,35 @@ This project is configured for easy deployment on [Railway](https://railway.app)
 
 [![Deploy on Railway](https://img.shields.io/badge/Deploy_on-Railway-0B0D0E?logo=railway)](https://railway.app/template/ai-rag-assistant)
 
-### Manual Setup
+### Via Railway CLI
+
+```bash
+# 1. Install CLI & login
+npm install -g @railway/cli
+railway login
+
+# 2. Create project
+railway init
+
+# 3. Add plugins
+railway plugin install postgresql
+railway plugin install redis
+
+# 4. Deploy services
+railway up --service backend    # deploy backend/
+railway up --service frontend   # deploy frontend/
+
+# 5. Set environment variables
+railway variables set SECRET_KEY=$(openssl rand -hex 32)
+railway variables set ANTHROPIC_API_KEY=sk-...
+railway variables set MINIO_ENDPOINT=...
+# ... set all vars from table below
+
+# 6. Open dashboard
+railway open
+```
+
+### Manual Setup via Dashboard
 
 1. **Fork this repo** to your GitHub account.
 2. **Create a Railway project** and add these services:
